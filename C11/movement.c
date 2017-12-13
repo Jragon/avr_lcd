@@ -18,7 +18,6 @@ void moveRectangle(movingRectangle *rect, const int inc)
 {
     int right, left, top, bottom;
 
-    
     right = rect->rect.right + rect->direction*inc;
     left = rect->rect.left + rect->direction*inc;
     
@@ -29,9 +28,11 @@ void moveRectangle(movingRectangle *rect, const int inc)
     
     // hit right boundary
     if (right >= display.width) {
+        right = display.width;
+        
         rect->direction = -rect->direction;
         rect->theta = -rect->theta;
-        rect->intercept = top - display.width/tan(_toRadians(rect->theta));
+        rect->intercept = top - left*tan(_toRadians(rect->theta));
         
         printf("RIGHT\n");
     }
@@ -39,7 +40,7 @@ void moveRectangle(movingRectangle *rect, const int inc)
     // hit bottom boundary
     if (bottom >= display.height) {
         rect->theta = -rect->theta;
-        rect->intercept = display.height - rect->height - left*tan(_toRadians(rect->theta));
+        rect->intercept = top - left*tan(_toRadians(rect->theta));
         
         printf("BOTTOM\n");
     }
@@ -48,7 +49,7 @@ void moveRectangle(movingRectangle *rect, const int inc)
     if (left <= 0){
         rect->direction = -rect->direction;
         rect->theta = -rect->theta;
-        rect->intercept = top;
+        rect->intercept = top - left*tan(_toRadians(rect->theta));
         
         printf("LEFT\n");
     }
@@ -56,7 +57,7 @@ void moveRectangle(movingRectangle *rect, const int inc)
     // hit top boundary
     if (top <= 0){
         rect->theta = -rect->theta;
-        rect->intercept = -left*tan(_toRadians(rect->theta));
+        rect->intercept = top - left*tan(_toRadians(rect->theta));
         
         printf("TOP\n");
     }
