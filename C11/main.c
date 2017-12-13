@@ -23,18 +23,33 @@ ISR(TIMER1_COMPA_vect)
         1, 17, 0, WIDTH, HEIGHT
     };
     
-    rectangle oldRect = rect1.rect;
+    static movingRectangle rect2 = {
+        { 0, 50, 0, 10 },
+        // note that tan(0) returns 0
+        1, 0, 0, WIDTH, HEIGHT
+    };
+    
+    rectangle oldRect1 = rect1.rect;
+    rectangle oldRect2 = rect2.rect;
     
     moveRectangle(&rect1, inc);
-    printMovingRectangle(&rect1);
+    moveRectangle(&rect2, 1);
     
-    fill_rectangle(oldRect, display.background);
+    //printMovingRectangle(&rect1);
+    
+    fill_rectangle(oldRect1, display.background);
+    fill_rectangle(oldRect2, display.background);
     fill_rectangle(rect1.rect, BLUE);
+    fill_rectangle(rect2.rect, RED);
 }
 
 int main(void)
 {
     init_lcd();
+    
+    /* note that uart takes a lot of time
+       and will slow down will increase the time
+       takes to run the ISR */
     init_debug_uart0();
     
     // init timer1
@@ -45,7 +60,7 @@ int main(void)
     TCCR1B |= _BV(CS12) | _BV(CS10);
     
     // ~30Hz when clock at 12MHz
-    OCR1A = 50;
+    OCR1A = 390;
     
     // enable interrupt flag
     TIMSK1 |= _BV(OCIE1A);
