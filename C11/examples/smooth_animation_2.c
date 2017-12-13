@@ -23,66 +23,64 @@ typedef struct {
 ISR(TIMER1_COMPA_vect)
 {
     const int inc = 5;
-    static rectangle rect = { _startX, _startX + _width, _startY, _startY + _height };
-
-    // 1 = left, -1 = right
-    static int direction = 1;
-    static int theta = 45;
-    static int intercept = 0;
+    static movingRectangle rect1 = { 
+        (rectangle) { _startX, _startX + _width, _startY, _startY + _height },
+        1, 45, 0
+    };
     
     int right, left, top, bottom;
 
     
-    right = rect.right + direction*inc;
-    left = rect.left + direction*inc;
+    right = rect1.rect.right + rect1.direction*inc;
+    left = rect1.rect.left + rect1.direction*inc;
     
-    top = tan(_toRadians(theta))*left + intercept;
+    top = tan(_toRadians(theta))*left + rect1.intercept;
     bottom = top + _width;
     
     // hit right boundary
     if (right >= 240) {
         right = 240;
-        direction = -direction;
-        theta = -theta;
-        intercept = top - LCDWIDTH/tan(_toRadians(theta));
+        rect1.direction = -rect1.direction;
+        rect1.theta = -rect1.theta;
+        rect1.intercept = top - LCDWIDTH/tan(_toRadians(theta));
     }
     
     // hit bottom boundary
     if (bottom >= 320) {
         bottom = 320;
-        theta = -theta;
-        intercept = LCDHEIGHT - (left*tan(_toRadians(theta))) - _height;
+        rect1.theta = -rect1.theta;
+        rect1.intercept = LCDHEIGHT - (left*tan(_toRadians(theta))) - _height;
     }
     
     // hit left boundary
     if (left <= 0){
         left = 0;
-        direction = -direction;
-        theta = -theta;
-        intercept = top;
+        rect1.direction = -rect1.direction;
+        rect1.theta = -rect1.theta;
+        rect1.intercept = top;
     }
     
     // hit top boundary
     if (top <= 0){
         top = 0;
-        theta = -theta;
-        intercept = -left*tan(_toRadians(theta));
+        rect1.theta = -rect1.theta;
+        rect1.intercept = -left*tan(_toRadians(theta));
     }
     
     
     
     printf("left: %d, right: %d, top: %d, bottom: %d, theta: %d, dir: %d, int: %d\n",
-           left, right, top, bottom, theta, direction, intercept);
+           left, right, top, bottom, rect1.theta, rect1.direction, rect1.intercept);
     printf("%d, %d, %d", display.background, BLACK, BLUE);
-    fill_rectangle(rect, display.background);
+    fill_rectangle(rect1.rect, display.background);
 
-    rect.left = left;
-    rect.right = right;
-    rect.top = top;
-    rect. bottom = bottom;
+    rect1.rect.left = left;
+    rect1.rect.right = right;
+    rect1.rect.top = top;
+    rect1.rect. bottom = bottom;
 
     //clear_screen();    
-    fill_rectangle(rect, BLUE);
+    fill_rectangle(rect1.rect, BLUE);
 }
 
 int main(void)
