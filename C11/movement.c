@@ -24,8 +24,6 @@ void moveRectangle(movingRectangle *rect, const int inc)
     top = tan(_toRadians(rect->theta))*left + rect->intercept;
     bottom = top + rect->width;
     
-    printf("left: %d, right: %d, top: %d, bottom: %d\n", left, right, top, bottom);
-    
     // x axis collision
     if ((right >= display.width) || (left <= 0)) {
         rect->direction = -rect->direction;
