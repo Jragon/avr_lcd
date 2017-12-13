@@ -26,40 +26,18 @@ void moveRectangle(movingRectangle *rect, const int inc)
     
     printf("left: %d, right: %d, top: %d, bottom: %d\n", left, right, top, bottom);
     
-    // hit right boundary
-    if (right >= display.width) {
-        right = display.width;
-        
+    // x axis collision
+    if ((right >= display.width) || (left <= 0)) {
         rect->direction = -rect->direction;
         rect->theta = -rect->theta;
         rect->intercept = top - left*tan(_toRadians(rect->theta));
-        
-        printf("RIGHT\n");
     }
     
-    // hit bottom boundary
-    if (bottom >= display.height) {
+    // y axis collision
+    // no direction change
+    if ((bottom >= display.height) || (top <= 0)) {
         rect->theta = -rect->theta;
         rect->intercept = top - left*tan(_toRadians(rect->theta));
-        
-        printf("BOTTOM\n");
-    }
-    
-    // hit left boundary
-    if (left <= 0){
-        rect->direction = -rect->direction;
-        rect->theta = -rect->theta;
-        rect->intercept = top - left*tan(_toRadians(rect->theta));
-        
-        printf("LEFT\n");
-    }
-    
-    // hit top boundary
-    if (top <= 0){
-        rect->theta = -rect->theta;
-        rect->intercept = top - left*tan(_toRadians(rect->theta));
-        
-        printf("TOP\n");
     }
     
     setRect(&rect->rect, left, right, top, bottom);

@@ -20,7 +20,7 @@ ISR(TIMER1_COMPA_vect)
     const int inc = 5;
     static movingRectangle rect1 = {
         { STARTX, STARTX + WIDTH, STARTY, STARTY + HEIGHT },
-        1, 45, 0, WIDTH, HEIGHT
+        1, 17, 0, WIDTH, HEIGHT
     };
     
     rectangle oldRect = rect1.rect;
