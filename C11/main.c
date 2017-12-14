@@ -22,12 +22,12 @@ ISR(TIMER1_COMPA_vect)
         { 
             { STARTX, STARTX + WIDTH, STARTY, STARTY + HEIGHT },
             { 0 }, // empty as there is no old rect
-            1, 17, 0, WIDTH, HEIGHT 
+            1, 17, 0, WIDTH, HEIGHT, BLUE
         },
         {
             { 0, 50, 0, 10 }, { 0 },
             // note that tan(0) returns 0
-            1, 0, 0, WIDTH, HEIGHT
+            1, 0, 0, WIDTH, HEIGHT, RED
         }
     };
     
@@ -35,11 +35,7 @@ ISR(TIMER1_COMPA_vect)
     moveRectangle(&rects[1], 1);
     
     //printMovingRectangle(&rect1);
-    
-    fill_rectangle(rects[0].oldRect, display.background);
-    fill_rectangle(rects[1].oldRect, display.background);
-    fill_rectangle(rects[0].rect, BLUE);
-    fill_rectangle(rects[1].rect, RED);
+    redrawRectangles(rects, 2);
 }
 
 int main(void)

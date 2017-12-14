@@ -8,9 +8,10 @@ typedef struct {
     rectangle rect, oldRect;
     // signed ints
     int direction, theta, intercept, width, height;
+    uint16_t colour;
 } movingRectangle;
 
 void moveRectangle(movingRectangle *rect, const int inc);
 void setRect(rectangle *rect, int left, int right, int top, int bottom);
 void printMovingRectangle(movingRectangle *rect);
-void drawRectangles(rectangle *rect, int n);
+void redrawRectangles(movingRectangle rect[], int n);

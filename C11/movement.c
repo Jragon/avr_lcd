@@ -58,7 +58,13 @@ void printMovingRectangle(movingRectangle *rect)
            rect->theta, rect->direction, rect->intercept);
 }
 
-void drawRectangles(rectangle *rect, int n)
+void redrawRectangles(movingRectangle rect[], int n)
 {
+    int i;
     
+    for (i = 0; i < n; i++)
+    {
+        fill_rectangle(rect[i].oldRect, display.background);
+        fill_rectangle(rect[i].rect, rect[i].colour);
+    }
 }
