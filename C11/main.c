@@ -18,29 +18,28 @@
 ISR(TIMER1_COMPA_vect)
 {
     const int inc = 5;
-    static movingRectangle rect1 = {
-        { STARTX, STARTX + WIDTH, STARTY, STARTY + HEIGHT },
-        1, 17, 0, WIDTH, HEIGHT
+    static movingRectangle rects[2] = {
+        { 
+            { STARTX, STARTX + WIDTH, STARTY, STARTY + HEIGHT },
+            { 0 }, // empty as there is no old rect
+            1, 17, 0, WIDTH, HEIGHT 
+        },
+        {
+            { 0, 50, 0, 10 }, { 0 },
+            // note that tan(0) returns 0
+            1, 0, 0, WIDTH, HEIGHT
+        }
     };
     
-    static movingRectangle rect2 = {
-        { 0, 50, 0, 10 },
-        // note that tan(0) returns 0
-        1, 0, 0, WIDTH, HEIGHT
-    };
-    
-    rectangle oldRect1 = rect1.rect;
-    rectangle oldRect2 = rect2.rect;
-    
-    moveRectangle(&rect1, inc);
-    moveRectangle(&rect2, 1);
+    moveRectangle(&rects[0], inc);
+    moveRectangle(&rects[1], 1);
     
     //printMovingRectangle(&rect1);
     
-    fill_rectangle(oldRect1, display.background);
-    fill_rectangle(oldRect2, display.background);
-    fill_rectangle(rect1.rect, BLUE);
-    fill_rectangle(rect2.rect, RED);
+    fill_rectangle(rects[0].oldRect, display.background);
+    fill_rectangle(rects[1].oldRect, display.background);
+    fill_rectangle(rects[0].rect, BLUE);
+    fill_rectangle(rects[1].rect, RED);
 }
 
 int main(void)
