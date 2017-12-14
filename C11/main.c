@@ -22,14 +22,21 @@ ISR(TIMER1_COMPA_vect)
         { 
             { STARTX, STARTX + WIDTH, STARTY, STARTY + HEIGHT },
             { 0 }, // empty as there is no old rect
-            1, 17, 0, WIDTH, HEIGHT, BLUE
+            1, 45, 0, WIDTH, HEIGHT, 
+            0, 1, // not fixed, and collides
+            -1, BLUE
         },
         {
-            { 0, 50, 0, 10 }, { 0 },
+            { 0, 150, 0, 10 }, { 0 },
             // note that tan(0) returns 0
-            1, 0, 0, WIDTH, HEIGHT, RED
+            1, 0, 0, WIDTH, HEIGHT, 
+            1, 1, // fixed and collides
+            -1, RED
         }
     };
+    
+    
+    testCollisions(rects, 2);
     
     moveRectangle(&rects[0], inc);
     moveRectangle(&rects[1], 1);
