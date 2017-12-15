@@ -16,7 +16,6 @@
 int main(void)
 {
     init_lcd();
-    init_debug_uart0();
     
     // 10x10 rect at (0, 0)
     rectangle rect;

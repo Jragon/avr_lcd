@@ -10,11 +10,10 @@
 
 #include <avr/io.h>
 
-#include "lcd.h"
 #include "movement.h"
 
 
-void moveRectangle(movingRectangle *rect, const int inc)
+int moveRectangle(movingRectangle *rect, const int inc)
 {
     int right, left, top, bottom;
 
@@ -22,7 +21,7 @@ void moveRectangle(movingRectangle *rect, const int inc)
     left = rect->rect.left + rect->direction*inc;
     
     top = tan(_toRadians(rect->theta))*left + rect->intercept;
-    bottom = top + rect->width;
+    bottom = top + rect->height;
     
     // if no active collision
     if (rect->collision == -1)
@@ -36,14 +35,27 @@ void moveRectangle(movingRectangle *rect, const int inc)
             
         // y axis collision
         // no direction change
-        if ((bottom >= display.height) || (top <= 0)) {
+        if ((bottom >= display.height)) {
+			top = 150; bottom = top + rect->height;
+			left = 150; right = left + rect->width;
+			setRect(&rect->rect, left, right, top, bottom);
+			printf("lower");
+			
+			return 0;
+        }
+		
+		// at top restart
+		if ((top <= 0))
+		{
             rect->theta = -rect->theta;
             rect->intercept = top - left*tan(_toRadians(rect->theta));
-        }
+		}
     }
     
     setRect(&rect->oldRect, rect->rect.left, rect->rect.right, rect->rect.top, rect->rect.bottom);
     setRect(&rect->rect, left, right, top, bottom);
+	
+	return 1;
 }
 
 

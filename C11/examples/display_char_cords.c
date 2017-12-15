@@ -18,16 +18,8 @@ int main(void)
     init_lcd();
     init_debug_uart0();
     
-    int i, j;
-    for (j = 0; j < 10; j++)
-    {
-        for (i = 0; i < 40; i++)
-        {
-            printf("row: %d, col: %d, x: %d, y: %d\n", j, i, display.x, display.y);
-            
-            display_char('z');
-            _delay_ms(10);
-        }
-    }
+    
+	display_string("Hello World");
+	while(1);
 }
 
