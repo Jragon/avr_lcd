@@ -13,12 +13,12 @@
 #include "movement.h"
 
 
-int moveRectangle(movingRectangle *rect, const int inc)
+int moveRectangle(movingRectangle *rect)
 {
     int right, left, top, bottom;
 
-    right = rect->rect.right + rect->direction*inc;
-    left = rect->rect.left + rect->direction*inc;
+    right = rect->rect.right + rect->direction*rect->increment;
+    left = rect->rect.left + rect->direction*rect->increment;
     
     top = tan(_toRadians(rect->theta))*left + rect->intercept;
     bottom = top + rect->height;
@@ -56,6 +56,16 @@ int moveRectangle(movingRectangle *rect, const int inc)
     setRect(&rect->rect, left, right, top, bottom);
 	
 	return 1;
+}
+
+void moveRectangles(movingRectangle rects[], int n)
+{
+    int i;
+
+    for (i = 0; i < n; i++)
+    {
+        moveRectangle((movingRectangle *) &rects[i]);
+    }
 }
 
 
@@ -143,4 +153,23 @@ void redrawRectangles(movingRectangle rect[], int n)
         fill_rectangle(rect[i].oldRect, display.background);
         fill_rectangle(rect[i].rect, rect[i].colour);
     }
+}
+
+movingRectangle createRect(int startX, int startY, int width, int height, int increment,
+                           int direction, int theta, int fixed, int hittable, uint16_t colour)
+{
+    return (movingRectangle){
+        .rect = { startX, startX + width, startY, startY + height },
+        .oldRect = { 0 },
+        .width = width,
+        .height = height,
+        .direction = direction,
+        .theta = theta,
+        .intercept = startY - startX*tan(_toRadians(theta)),
+        .increment = increment,
+        .fixed = fixed,
+        .hittable = hittable,
+        .collision = -1,
+        .colour = colour
+    };
 }

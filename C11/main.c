@@ -12,84 +12,51 @@
 #define HEIGHT 10
 #define STARTX (LCDWIDTH/2 - WIDTH/2)
 #define STARTY (LCDHEIGHT/2 - HEIGHT/2)
+#define RECT_COUNT 2
 
 #define NEW_RECT(x, y, width, height) { x, x + width, y, y + height }
 
-int8_t enc_delta(void);
+int8_t encodeRotaryCount(void);
 void init_rotary(void);
-volatile int8_t delta;
+void init_rectangles(void);
+void init_frame_timer(int fps);
 
-ISR( TIMER0_COMPA_vect ) {
-     static int8_t last;
-     int8_t new, diff;
-     uint8_t wheel;
+volatile int8_t rotaryCount;
+// note that you have cast it to (movingRectangle) when you pass it
+volatile movingRectangle rects[RECT_COUNT];
+volatile movingRectangle *paddle;
 
-     wheel = PIND;
-     new = 0;
-     if( wheel  & _BV(PD2) ) new = 3;
-     if( wheel  & _BV(PD3) )
-     new ^= 1;                  /* convert gray to binary */
-     diff = last - new;         /* difference last - new  */
-     if( diff & 1 ){            /* bit 0 = value (1) */
-         last = new;                /* store new as next last  */
-         delta += (diff & 2) - 1;   /* bit 1 = direction (+/-) */
-     }
+// rotary encoder timer
+ISR(TIMER0_COMPA_vect)
+{
+    static int8_t last;
+    int8_t new, diff;
+    uint8_t wheel;
 
+    wheel = PIND;
+    new = 0;
+    if( wheel  & _BV(PD2) ) new = 3;
+    if( wheel  & _BV(PD3) )
+    new ^= 1;                  /* convert gray to binary */
+    diff = last - new;         /* difference last - new  */
+    if( diff & 1 ){            /* bit 0 = value (1) */
+        last = new;                /* store new as next last  */
+        rotaryCount += (diff & 2) - 1;   /* bit 1 = direction (+/-) */
+    }
 }
 
+// frame timer
 ISR(TIMER1_COMPA_vect)
 {
-    const int inc = 5;
-    static movingRectangle rects[3] = {
-        {
-            .rect = NEW_RECT(STARTX, STARTY, WIDTH, HEIGHT),
-            .oldRect = { 0 }, // empty as there is no old rect
-            .width = WIDTH, .height = HEIGHT,
-            .direction = 1, .theta = 45, .intercept = 0,
-            .fixed = 0, .hittable = 1, // not fixed, and collides
-            .collision = -1, .colour = BLUE
-        },
-		{
-            .rect = NEW_RECT(100, 100, WIDTH, HEIGHT),
-            .oldRect = { 0 }, // empty as there is no old rect
-            .width = WIDTH, .height = HEIGHT,
-            .direction = 1, .theta = 30, .intercept = 100,
-            .fixed = 0, .hittable = 1, // not fixed, and collides
-            .collision = -1, .colour = RED
-        },
-        {
-            { LCDWIDTH/2, LCDWIDTH/2 + 20, 300, 310 }, { 0 },
-            // note that tan(0) returns 0
-            1, 0, 300, 20, 10, 
-            1, 1, // fixed and collides
-            -1, RED
-        }
-    };
+    testCollisions((movingRectangle *) rects, RECT_COUNT);
     
-    
-    testCollisions(rects, 3);
-    
-    if (!moveRectangle(&rects[0], inc) || !moveRectangle(&rects[1], inc)){
-		display.x = display.width/2;
-		display.y = display.height/2;
-		
-		clear_screen();
-		display_string("GAME OVER");
-		
-		_delay_ms(10000);
-		
-		//clear_screen();
-		//printMovingRectangle(&rects[0]);
-		//redrawRectangles(rects, 2);
-	} else {
-		
-		moveRectangle(&rects[2], enc_delta()*2);
-    
-		//printMovingRectangle(&rect1);
-		redrawRectangles(rects, 3);
-	}
-}
+    if (paddle != NULL)
+        // read value from rotary encoder count
+        paddle->increment = encodeRotaryCount() * 2;
 
+    moveRectangles((movingRectangle *) rects, RECT_COUNT);
+    redrawRectangles((movingRectangle *) rects, RECT_COUNT);
+}
 
 int main(void)
 {
@@ -101,24 +68,9 @@ int main(void)
     init_debug_uart0();
 	
 	init_rotary();
-    
-    // init timer1
-    // timer 1 ctc mode
-    TCCR1A = 0;
-    TCCR1B = _BV(WGM12);
-    // / by 1024
-    TCCR1B |= _BV(CS12) | _BV(CS10);
-    
-    // ~30Hz when clock at 12MHz
-    // OCR1A = 390;
-	OCR1A = 1000;
-	
-    // enable interrupt flag
-    TIMSK1 |= _BV(OCIE1A);
-    
-    /* Rotary encoder setup */
-    DDRD |= _BV(PD2) | _BV(PD3);
-    PORTD |= _BV(PD2) | _BV(PD3);
+    init_rectangles();
+    init_frame_timer(30);
+
     sei();
 
     display.background = BLACK;
@@ -146,14 +98,36 @@ void init_rotary(void) {
     TIMSK0 |= _BV(OCIE0A); 
 }
 
+void init_rectangles(void) {
+    rects[0] = createRect(display.width/2, display.height/2, 10, 10, 5, 1, 45, 0, 1, BLUE);
+    
+    // paddle
+    rects[1] = createRect(display.width/2, display.height - 10, 50, 5, 0, 1, 0, 1, 1, RED);
+    paddle = &rects[1];
+}
+
+void init_frame_timer(int fps)
+{
+    // timer 1 ctc mode
+    TCCR1A = 0;
+    TCCR1B = _BV(WGM12);
+    
+    // / by 1024
+    TCCR1B |= _BV(CS12) | _BV(CS10);
+    
+    OCR1A = 11719/fps;
+        
+    // enable interrupt flag
+    TIMSK1 |= _BV(OCIE1A);
+}
 
 /* read two step encoder */
-int8_t enc_delta() {
+int8_t encodeRotaryCount() {
     int8_t val;
 
     cli();
-    val = delta;
-    delta &= 1;
+    val = rotaryCount;
+    rotaryCount &= 1;
     sei();
 
     return val >> 1;
