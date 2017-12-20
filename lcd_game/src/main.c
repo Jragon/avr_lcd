@@ -5,6 +5,7 @@
 
 #include "debug.h"
 #include "movement.h"
+#include "rotary.h"
 
 #define WIDTH 10
 #define HEIGHT 10
@@ -14,34 +15,12 @@
 
 #define NEW_RECT(x, y, width, height) { x, x + width, y, y + height }
 
-int8_t encodeRotaryCount(void);
-void init_rotary(void);
 void init_rectangles(void);
 void init_frame_timer(int fps);
 
-volatile int8_t rotaryCount;
 // note that you have cast it to (movingRectangle) when you pass it
 volatile movingRectangle rects[RECT_COUNT];
 volatile movingRectangle *paddle;
-
-// rotary encoder timer
-ISR(TIMER0_COMPA_vect)
-{
-    static int8_t last;
-    int8_t new, diff;
-    uint8_t wheel;
-
-    wheel = PIND;
-    new = 0;
-    if( wheel  & _BV(PD2) ) new = 3;
-    if( wheel  & _BV(PD3) )
-    new ^= 1;                  /* convert gray to binary */
-    diff = last - new;         /* difference last - new  */
-    if( diff & 1 ){            /* bit 0 = value (1) */
-        last = new;                /* store new as next last  */
-        rotaryCount += (diff & 2) - 1;   /* bit 1 = direction (+/-) */
-    }
-}
 
 // frame timer
 ISR(TIMER1_COMPA_vect)
@@ -76,26 +55,6 @@ int main(void)
     while (1);
 }
 
-void init_rotary(void) {
-
-    /* 8MHz clock, no prescaling (DS, p. 48) */
-    CLKPR = (1 << CLKPCE);
-    CLKPR = 0;
-
-    /* Configure I/O Ports */
-    DDRD &= ~_BV(PD2) & ~_BV(PD3);  /* Rot. Encoder inputs */
-    PORTD |= _BV(PD2) | _BV(PD3);   /* Rot. Encoder pull-ups */
-
-
-    /* Timer 0 for switch scan interrupt: */
-    TCCR0A = _BV(WGM01);  /* CTC Mode, DS Table 14-7 */
-    TCCR0B = _BV(CS01)
-           | _BV(CS00);   /* Prescaler: F_CPU / 64 */
-    OCR0A = (uint8_t)(F_CPU / (2 * 64.0 * 1000) - 1);
-
-    TIMSK0 |= _BV(OCIE0A); 
-}
-
 void init_rectangles(void) {
     rects[0] = createRect(display.width/2, display.height/2, 10, 10, 5, 1, 45, 0, 1, BLUE);
     
@@ -117,16 +76,4 @@ void init_frame_timer(int fps)
         
     // enable interrupt flag
     TIMSK1 |= _BV(OCIE1A);
-}
-
-/* read two step encoder */
-int8_t encodeRotaryCount() {
-    int8_t val;
-
-    cli();
-    val = rotaryCount;
-    rotaryCount &= 1;
-    sei();
-
-    return val >> 1;
 }
