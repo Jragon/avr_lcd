@@ -23,11 +23,6 @@ ISR(TIMER0_COMPA_vect)
 
 void init_rotary(void)
 {
-
-    /* 8MHz clock, no prescaling (DS, p. 48) */
-    CLKPR = (1 << CLKPCE);
-    CLKPR = 0;
-
     /* Configure I/O Ports */
     DDRD &= ~_BV(PD2) & ~_BV(PD3); /* Rot. Encoder inputs */
     PORTD |= _BV(PD2) | _BV(PD3);  /* Rot. Encoder pull-ups */

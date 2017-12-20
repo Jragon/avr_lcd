@@ -23,7 +23,7 @@ volatile movingRectangle rects[RECT_COUNT];
 volatile movingRectangle *paddle;
 
 // frame timer
-ISR(TIMER1_COMPA_vect)
+ISR(TIMER2_COMPA_vect)
 {
     testCollisions((movingRectangle *) rects, RECT_COUNT);
     
@@ -56,7 +56,7 @@ int main(void)
 }
 
 void init_rectangles(void) {
-    rects[0] = createRect(display.width/2, display.height/2, 10, 10, 5, 1, 45, 0, 1, BLUE);
+    rects[0] = createRect(display.width/2, display.height/2, 10, 10, 2, 1, 45, 0, 1, BLUE);
     
     // paddle
     rects[1] = createRect(display.width/2, display.height - 10, 50, 5, 0, 1, 0, 1, 1, RED);
@@ -66,14 +66,16 @@ void init_rectangles(void) {
 void init_frame_timer(int fps)
 {
     // timer 1 ctc mode
-    TCCR1A = 0;
-    TCCR1B = _BV(WGM12);
+    TCCR2A = _BV(WGM21);
     
-    // / by 1024
-    TCCR1B |= _BV(CS12) | _BV(CS10);
+    // / by 1024 
+    TCCR2B |= _BV(CS22) | _BV(CS21) | _BV(CS20);
     
-    OCR1A = 11719/fps;
-        
+    // F_CPU/prescalar = 12000000/1024 = 11719 ticks per second
+    // timer 2 is only 8 bit so the max is 256
+    // this means that the min FPS is 45
+    OCR2A = (11719/fps < 256) ? 11719/fps : 255;
+
     // enable interrupt flag
-    TIMSK1 |= _BV(OCIE1A);
+    TIMSK2 |= _BV(OCIE1A);
 }
