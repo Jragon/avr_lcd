@@ -7,7 +7,6 @@
 
 #include <math.h>
 #include <stdio.h>
-
 #include <avr/io.h>
 
 #include "movement.h"
@@ -31,25 +30,26 @@ int moveRectangle(movingRectangle *rect)
             rect->direction = -rect->direction;
             rect->theta = -rect->theta;
             rect->intercept = top - left*tan(_toRadians(rect->theta));
+
+            play(BEEP, 25);
         }
             
         // y axis collision
         // no direction change
-        if ((bottom >= display.height)) {
-			top = 150; bottom = top + rect->height;
-			left = 150; right = left + rect->width;
-			setRect(&rect->rect, left, right, top, bottom);
-			printf("lower");
-			
-			return 0;
-        }
+        // if ((bottom >= display.height)) {
+		// 	top = 150; bottom = top + rect->height;
+		// 	left = 150; right = left + rect->width;
+		// 	setRect(&rect->rect, left, right, top, bottom);
 		
-		// at top restart
-		if ((top <= 0))
-		{
+        // }
+
+        if ((top <= 0) || (bottom >= display.height))
+        {
             rect->theta = -rect->theta;
             rect->intercept = top - left*tan(_toRadians(rect->theta));
-		}
+
+            play(BEEP, 25);
+        }
     }
     
     setRect(&rect->oldRect, rect->rect.left, rect->rect.right, rect->rect.top, rect->rect.bottom);
@@ -101,7 +101,6 @@ void testCollisions(movingRectangle rects[], int n)
         for (j = 0; j < n; j++)
         {
             // if i == j then the rectangles are the same
-            // see above
             if (i == j || !rects[j].hittable)
                 continue;
 

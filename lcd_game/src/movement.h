@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lcd.h"
+#include "sound.h"
 
 #define _toRadians(deg) (deg * (M_PI / 180.0))
 

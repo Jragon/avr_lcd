@@ -1,5 +1,20 @@
 #include "sound.h"
 
+ISR(TIMER1_OVF_vect)
+{
+    if (delayCounter > delayCounterTop)
+    {
+        SPEAKER_OFF;
+
+        // disable TIMER1 interrupt
+        TIMSK1 &= ~_BV(TOIE1);
+    }
+    else
+    {
+        delayCounter++;
+    }
+}
+
 void init_sound(void)
 {
     // Fast PWM mode with ICR1 as top
@@ -27,17 +42,19 @@ void init_sound(void)
 void tone(uint16_t frequency)
 {
     // set frequency
-    ICR1 = (uint16_t)((F_CPU / TONE_PRESCALER) / frequency);
+    ICR1 = (uint16_t)((F_CPU / (2 * TONE_PRESCALER)) / frequency);
 }
 
-void play(uint16_t frequency, uint16_t delay)
+void play(uint16_t frequency, uint16_t delay_ms)
 {
-    // enable output on speaker pin
-    DDRD |= _BV(SPEAKER_PIN);
+    SPEAKER_ON;
+
+    // set up delay counter
+    delayCounter = 0;
+    delayCounterTop = ((double)(1000.0 / frequency)) * delay_ms;
+
+    // enable interrupt
+    TIMSK1 = _BV(TOIE1);
 
     tone(frequency);
-    _delay_ms(delay);
-
-    // disable output
-    DDRD &= ~_BV(SPEAKER_PIN);
 }

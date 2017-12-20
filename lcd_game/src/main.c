@@ -38,7 +38,8 @@ ISR(TIMER2_COMPA_vect)
 int main(void)
 {
     init_lcd();
-    
+    init_sound();
+
     /* note that uart takes a lot of time
        and will slow down will increase the time
        takes to run the ISR */
